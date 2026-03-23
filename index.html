@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+      <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -9,544 +9,156 @@
 <meta name="apple-mobile-web-app-title" content="SonicShield">
 <meta name="description" content="Detector de frecuencias sónicas — analiza si el sonido ambiente es dañino">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>SonicShield</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@200;400;700;900&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:       #060810;
-  --surface:  #0b0e1c;
-  --border:   #161c35;
-  --safe:     #00ffa3;
-  --warn:     #ffcc00;
-  --danger:   #ff3358;
-  --info:     #38b6ff;
-  --text:     #b8c8e8;
-  --muted:    #2e3a5a;
-  --mono:     'Share Tech Mono', monospace;
-  --ui:       'Exo 2', sans-serif;
+  --bg:      #060810;
+  --surface: #0b0e1c;
+  --border:  #161c35;
+  --safe:    #00ffa3;
+  --warn:    #ffcc00;
+  --danger:  #ff3358;
+  --info:    #38b6ff;
+  --text:    #b8c8e8;
+  --muted:   #2e3a5a;
+  --mono:    'Share Tech Mono', monospace;
+  --ui:      'Exo 2', sans-serif;
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--ui); overflow-x: hidden; }
+body::after { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px); pointer-events:none; z-index:999; }
+body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(56,182,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(56,182,255,0.03) 1px,transparent 1px); background-size:28px 28px; pointer-events:none; z-index:0; }
 
-html, body {
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--ui);
-  overflow-x: hidden;
-}
+.app { position:relative; z-index:1; max-width:460px; margin:0 auto; padding:0 14px 40px; min-height:100dvh; display:flex; flex-direction:column; gap:10px; }
 
-/* Scanline overlay */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,0.07) 2px,
-    rgba(0,0,0,0.07) 4px
-  );
-  pointer-events: none;
-  z-index: 999;
-}
-
-/* Grid */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(56,182,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(56,182,255,0.03) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.app {
-  position: relative;
-  z-index: 1;
-  max-width: 460px;
-  margin: 0 auto;
-  padding: 0 14px 32px;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* ── HEADER ── */
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 0 14px;
-  border-bottom: 1px solid var(--border);
-}
-
-.logo {
-  font-family: var(--ui);
-  font-weight: 900;
-  font-size: 20px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-}
-
-.logo em { color: var(--info); font-style: normal; }
-
-.live-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: var(--muted);
-  text-transform: uppercase;
-}
-
-.live-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--muted);
-  transition: background 0.4s, box-shadow 0.4s;
-}
-
-.live-dot.on {
-  background: var(--safe);
-  box-shadow: 0 0 8px var(--safe), 0 0 16px rgba(0,255,163,0.4);
-  animation: blink 1.6s ease-in-out infinite;
-}
-
+header { display:flex; align-items:center; justify-content:space-between; padding:18px 0 14px; border-bottom:1px solid var(--border); }
+.logo { font-family:var(--ui); font-weight:900; font-size:20px; letter-spacing:3px; text-transform:uppercase; }
+.logo em { color:var(--info); font-style:normal; }
+.live-badge { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; }
+.live-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); transition:background 0.4s,box-shadow 0.4s; }
+.live-dot.on { background:var(--safe); box-shadow:0 0 8px var(--safe),0 0 16px rgba(0,255,163,0.4); animation:blink 1.6s ease-in-out infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-/* ── START SCREEN ── */
-#startScreen {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: 40px 0;
-}
+#startScreen { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:40px 0; }
+.start-icon { width:100px; height:100px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:40px; position:relative; background:var(--surface); }
+.start-icon::before,.start-icon::after { content:''; position:absolute; border-radius:50%; border:1px solid rgba(56,182,255,0.15); animation:ripple 2.5s linear infinite; }
+.start-icon::before { width:130px; height:130px; }
+.start-icon::after  { width:165px; height:165px; animation-delay:1.25s; }
+@keyframes ripple { 0%{transform:scale(0.8);opacity:0.6} 100%{transform:scale(1.2);opacity:0} }
+.start-title { font-weight:700; font-size:22px; letter-spacing:1px; text-align:center; }
+.start-sub { font-weight:200; font-size:14px; color:var(--muted); text-align:center; line-height:1.7; max-width:280px; }
+.btn-start { background:none; border:1px solid var(--info); color:var(--info); font-family:var(--ui); font-weight:700; font-size:14px; letter-spacing:3px; text-transform:uppercase; padding:16px 40px; border-radius:3px; cursor:pointer; transition:background 0.3s; }
+.btn-start:active { background:rgba(56,182,255,0.12); }
 
-.start-icon {
-  width: 100px; height: 100px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  position: relative;
-  background: var(--surface);
-}
+#mainUI { display:none; flex-direction:column; gap:10px; }
 
-.start-icon::before, .start-icon::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid rgba(56,182,255,0.15);
-  animation: ripple 2.5s linear infinite;
-}
+.freq-card { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:20px 18px 18px; position:relative; overflow:hidden; transition:border-color 0.5s; }
+.freq-card::before { content:'FRECUENCIA DOMINANTE'; font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--muted); display:block; margin-bottom:8px; }
+.freq-card::after { content:''; position:absolute; top:-40px; right:-40px; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle,rgba(56,182,255,0.08) 0%,transparent 70%); transition:background 0.5s; }
+.freq-card.safe-glow::after   { background:radial-gradient(circle,rgba(0,255,163,0.1) 0%,transparent 70%); }
+.freq-card.warn-glow::after   { background:radial-gradient(circle,rgba(255,204,0,0.1) 0%,transparent 70%); }
+.freq-card.danger-glow::after { background:radial-gradient(circle,rgba(255,51,88,0.12) 0%,transparent 70%); }
+.freq-display { display:flex; align-items:baseline; gap:6px; }
+.freq-num { font-family:var(--mono); font-size:clamp(52px,17vw,84px); line-height:1; color:var(--info); transition:color 0.4s,text-shadow 0.4s; letter-spacing:-3px; }
+.freq-num.safe   { color:var(--safe);   text-shadow:0 0 40px rgba(0,255,163,0.35); }
+.freq-num.warn   { color:var(--warn);   text-shadow:0 0 40px rgba(255,204,0,0.35); }
+.freq-num.danger { color:var(--danger); text-shadow:0 0 40px rgba(255,51,88,0.4); }
+.freq-hz { font-family:var(--ui); font-weight:200; font-size:20px; color:var(--muted); letter-spacing:3px; }
+.freq-band { margin-top:8px; font-family:var(--ui); font-weight:700; font-size:12px; letter-spacing:4px; text-transform:uppercase; color:var(--muted); transition:color 0.4s; }
+.freq-band.safe   { color:var(--safe); }
+.freq-band.warn   { color:var(--warn); }
+.freq-band.danger { color:var(--danger); }
 
-.start-icon::before { width: 130px; height: 130px; animation-delay: 0s; }
-.start-icon::after  { width: 165px; height: 165px; animation-delay: 1.25s; }
+.verdict { border-radius:4px; padding:14px 16px; display:flex; align-items:center; gap:14px; border:1px solid var(--border); background:var(--surface); transition:border-color 0.4s,background 0.4s; }
+.verdict.safe   { border-color:rgba(0,255,163,0.3);  background:rgba(0,255,163,0.05); }
+.verdict.warn   { border-color:rgba(255,204,0,0.3);  background:rgba(255,204,0,0.05); }
+.verdict.danger { border-color:rgba(255,51,88,0.35); background:rgba(255,51,88,0.07); }
+.verdict-icon { font-size:26px; flex-shrink:0; }
+.verdict-label { font-weight:900; font-size:15px; letter-spacing:2px; text-transform:uppercase; transition:color 0.4s; }
+.verdict.safe   .verdict-label { color:var(--safe); }
+.verdict.warn   .verdict-label { color:var(--warn); }
+.verdict.danger .verdict-label { color:var(--danger); }
+.verdict-desc { font-weight:200; font-size:12px; color:var(--text); line-height:1.5; margin-top:2px; }
 
-@keyframes ripple {
-  0%   { transform: scale(0.8); opacity: 0.6; }
-  100% { transform: scale(1.2); opacity: 0; }
-}
+.meters { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.meter { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:12px 14px; }
+.meter-label { font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
+.meter-val { font-family:var(--mono); font-size:28px; color:var(--text); line-height:1; }
+.meter-val small { font-size:11px; color:var(--muted); margin-left:2px; }
+.bar-track { margin-top:8px; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:2px; width:0%; transition:width 0.12s linear,background 0.4s; background:var(--info); }
+.bar-fill.safe   { background:var(--safe); }
+.bar-fill.warn   { background:var(--warn); }
+.bar-fill.danger { background:var(--danger); }
 
-.start-title {
-  font-weight: 700;
-  font-size: 22px;
-  letter-spacing: 1px;
-  text-align: center;
-}
+.spectrum-card { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:12px 14px; }
+.spectrum-label { font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
+canvas#spectrum { width:100%; height:90px; display:block; border-radius:2px; }
+.freq-axis { display:flex; justify-content:space-between; margin-top:5px; padding:0 2px; }
+.freq-axis span { font-family:var(--mono); font-size:8px; color:var(--muted); }
 
-.start-sub {
-  font-weight: 200;
-  font-size: 14px;
-  color: var(--muted);
-  text-align: center;
-  line-height: 1.7;
-  max-width: 280px;
-}
+/* ── DB CONSEQUENCES ── */
+.db-card { background:var(--surface); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+.db-title { padding:10px 14px; font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:4px; }
+.db-current-tag { color:var(--info); font-size:9px; }
+.db-row { display:grid; grid-template-columns:54px 1fr; padding:10px 14px; border-bottom:1px solid rgba(22,28,53,0.7); gap:12px; align-items:start; border-left:3px solid transparent; transition:background 0.3s,border-color 0.3s; }
+.db-row:last-child { border-bottom:none; }
+.db-row.active-db.cls-safe   { background:rgba(0,255,163,0.06);  border-left-color:var(--safe); }
+.db-row.active-db.cls-warn   { background:rgba(255,204,0,0.06);  border-left-color:var(--warn); }
+.db-row.active-db.cls-danger { background:rgba(255,51,88,0.08);  border-left-color:var(--danger); }
+.db-level { font-family:var(--mono); font-size:10px; color:var(--text); padding-top:2px; line-height:1.4; }
+.db-name { font-weight:700; font-size:12px; margin-bottom:3px; }
+.db-name.safe   { color:var(--safe); }
+.db-name.warn   { color:var(--warn); }
+.db-name.danger { color:var(--danger); }
+.db-consequence { font-weight:200; font-size:11px; color:var(--text); line-height:1.55; }
+.db-time { font-family:var(--mono); font-size:10px; margin-top:4px; }
+.db-time.safe   { color:var(--safe); }
+.db-time.warn   { color:var(--warn); }
+.db-time.danger { color:var(--danger); }
 
-.btn-start {
-  background: none;
-  border: 1px solid var(--info);
-  color: var(--info);
-  font-family: var(--ui);
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  padding: 16px 40px;
-  border-radius: 3px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: color 0.3s, background 0.3s;
-}
+/* FREQ TABLE */
+.ref-card { background:var(--surface); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+.ref-title { padding:10px 14px; font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; border-bottom:1px solid var(--border); }
+.ref-row { display:grid; grid-template-columns:90px 1fr 60px; padding:9px 14px; border-bottom:1px solid rgba(22,28,53,0.6); align-items:center; gap:8px; transition:background 0.2s; }
+.ref-row:last-child { border-bottom:none; }
+.ref-row.active { background:rgba(56,182,255,0.06); }
+.ref-hz { font-family:var(--mono); font-size:10px; color:var(--text); }
+.ref-name { font-weight:200; font-size:12px; color:var(--text); line-height:1.4; }
+.tag { font-weight:700; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; text-align:right; }
+.tag.safe   { color:var(--safe); }
+.tag.warn   { color:var(--warn); }
+.tag.danger { color:var(--danger); }
 
-.btn-start::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--info);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s ease;
-  z-index: -1;
-}
+.btn-stop { background:none; border:1px solid rgba(255,51,88,0.4); color:var(--danger); font-family:var(--ui); font-weight:700; font-size:12px; letter-spacing:3px; text-transform:uppercase; padding:14px; border-radius:3px; cursor:pointer; width:100%; transition:background 0.3s; }
+.btn-stop:active { background:rgba(255,51,88,0.1); }
 
-.btn-start:hover::before { transform: scaleX(1); }
-.btn-start:hover { color: #000; }
-.btn-start:active { opacity: 0.8; }
+#installBanner { display:none; background:var(--surface); border:1px solid rgba(56,182,255,0.3); border-radius:4px; padding:12px 14px; align-items:center; gap:12px; }
+#installBanner.show { display:flex; }
+.install-text { flex:1; font-weight:200; font-size:12px; line-height:1.5; }
+.btn-install { background:var(--info); border:none; color:#000; font-family:var(--ui); font-weight:700; font-size:11px; letter-spacing:1px; padding:8px 14px; border-radius:3px; cursor:pointer; flex-shrink:0; }
 
-/* ── MAIN UI ── */
-#mainUI { display: none; flex-direction: column; gap: 10px; }
-
-/* ── FREQ CARD ── */
-.freq-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 20px 18px 18px;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.5s;
-}
-
-.freq-card::before {
-  content: 'FRECUENCIA DOMINANTE';
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--muted);
-  display: block;
-  margin-bottom: 8px;
-}
-
-/* Glow corner */
-.freq-card::after {
-  content: '';
-  position: absolute;
-  top: -40px; right: -40px;
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(56,182,255,0.08) 0%, transparent 70%);
-  transition: background 0.5s;
-}
-
-.freq-card.safe-glow::after   { background: radial-gradient(circle, rgba(0,255,163,0.1) 0%, transparent 70%); }
-.freq-card.warn-glow::after   { background: radial-gradient(circle, rgba(255,204,0,0.1) 0%, transparent 70%); }
-.freq-card.danger-glow::after { background: radial-gradient(circle, rgba(255,51,88,0.12) 0%, transparent 70%); }
-
-.freq-display {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.freq-num {
-  font-family: var(--mono);
-  font-size: clamp(56px, 18vw, 88px);
-  line-height: 1;
-  color: var(--info);
-  transition: color 0.4s, text-shadow 0.4s;
-  letter-spacing: -3px;
-}
-
-.freq-num.safe   { color: var(--safe);   text-shadow: 0 0 40px rgba(0,255,163,0.35); }
-.freq-num.warn   { color: var(--warn);   text-shadow: 0 0 40px rgba(255,204,0,0.35); }
-.freq-num.danger { color: var(--danger); text-shadow: 0 0 40px rgba(255,51,88,0.4); }
-
-.freq-hz {
-  font-family: var(--ui);
-  font-weight: 200;
-  font-size: 20px;
-  color: var(--muted);
-  letter-spacing: 3px;
-}
-
-.freq-band {
-  margin-top: 8px;
-  font-family: var(--ui);
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: var(--muted);
-  transition: color 0.4s;
-}
-
-.freq-band.safe   { color: var(--safe); }
-.freq-band.warn   { color: var(--warn); }
-.freq-band.danger { color: var(--danger); }
-
-/* ── VERDICT ── */
-.verdict {
-  border-radius: 4px;
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  transition: border-color 0.4s, background 0.4s;
-}
-
-.verdict.safe   { border-color: rgba(0,255,163,0.3);   background: rgba(0,255,163,0.05); }
-.verdict.warn   { border-color: rgba(255,204,0,0.3);   background: rgba(255,204,0,0.05); }
-.verdict.danger { border-color: rgba(255,51,88,0.35);  background: rgba(255,51,88,0.07); }
-
-.verdict-icon { font-size: 26px; flex-shrink: 0; }
-
-.verdict-label {
-  font-weight: 900;
-  font-size: 15px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  transition: color 0.4s;
-}
-
-.verdict.safe   .verdict-label { color: var(--safe); }
-.verdict.warn   .verdict-label { color: var(--warn); }
-.verdict.danger .verdict-label { color: var(--danger); }
-
-.verdict-desc {
-  font-weight: 200;
-  font-size: 12px;
-  color: var(--text);
-  line-height: 1.5;
-  margin-top: 2px;
-}
-
-/* ── METERS ── */
-.meters {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.meter {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 12px 14px;
-}
-
-.meter-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-bottom: 5px;
-}
-
-.meter-val {
-  font-family: var(--mono);
-  font-size: 28px;
-  color: var(--text);
-  line-height: 1;
-}
-
-.meter-val small {
-  font-size: 11px;
-  color: var(--muted);
-  margin-left: 2px;
-}
-
-.bar-track {
-  margin-top: 8px;
-  height: 3px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  width: 0%;
-  transition: width 0.12s linear, background 0.4s;
-  background: var(--info);
-}
-
-.bar-fill.safe   { background: var(--safe); }
-.bar-fill.warn   { background: var(--warn); }
-.bar-fill.danger { background: var(--danger); }
-
-/* ── SPECTRUM ── */
-.spectrum-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 12px 14px;
-}
-
-.spectrum-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-canvas#spectrum {
-  width: 100%;
-  height: 90px;
-  display: block;
-  border-radius: 2px;
-}
-
-.freq-axis {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 5px;
-  padding: 0 2px;
-}
-
-.freq-axis span {
-  font-family: var(--mono);
-  font-size: 8px;
-  color: var(--muted);
-}
-
-/* ── REFERENCE TABLE ── */
-.ref-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.ref-title {
-  padding: 10px 14px;
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--muted);
-  text-transform: uppercase;
-  border-bottom: 1px solid var(--border);
-}
-
-.ref-row {
-  display: grid;
-  grid-template-columns: 90px 1fr 60px;
-  padding: 9px 14px;
-  border-bottom: 1px solid rgba(22,28,53,0.6);
-  align-items: center;
-  gap: 8px;
-  transition: background 0.2s;
-}
-
-.ref-row:last-child { border-bottom: none; }
-.ref-row.active { background: rgba(56,182,255,0.06); }
-
-.ref-hz {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--text);
-}
-
-.ref-name {
-  font-weight: 200;
-  font-size: 12px;
-  color: var(--text);
-  line-height: 1.4;
-}
-
-.tag {
-  font-weight: 700;
-  font-size: 9px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  text-align: right;
-}
-
-.tag.safe   { color: var(--safe); }
-.tag.warn   { color: var(--warn); }
-.tag.danger { color: var(--danger); }
-
-/* ── STOP BTN ── */
-.btn-stop {
-  background: none;
-  border: 1px solid rgba(255,51,88,0.4);
-  color: var(--danger);
-  font-family: var(--ui);
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  padding: 14px;
-  border-radius: 3px;
-  cursor: pointer;
-  width: 100%;
-  transition: background 0.3s;
-}
-
-.btn-stop:hover { background: rgba(255,51,88,0.1); }
-
-/* ── INSTALL TOAST ── */
-#installBanner {
-  display: none;
-  background: var(--surface);
-  border: 1px solid rgba(56,182,255,0.3);
-  border-radius: 4px;
-  padding: 12px 14px;
-  align-items: center;
-  gap: 12px;
-}
-
-#installBanner.show { display: flex; }
-
-.install-text {
-  flex: 1;
-  font-weight: 200;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.btn-install {
-  background: var(--info);
-  border: none;
-  color: #000;
-  font-family: var(--ui);
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 1px;
-  padding: 8px 14px;
-  border-radius: 3px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-/* ── ANIMATIONS ── */
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.app > * { animation: slideUp 0.4s ease both; }
-.app > *:nth-child(1) { animation-delay: 0.05s; }
-.app > *:nth-child(2) { animation-delay: 0.10s; }
-.app > *:nth-child(3) { animation-delay: 0.15s; }
+/* REPORT */
+.btn-report { background:none; border:1px solid rgba(56,182,255,0.4); color:var(--info); font-family:var(--ui); font-weight:700; font-size:12px; letter-spacing:3px; text-transform:uppercase; padding:14px; border-radius:3px; cursor:pointer; width:100%; transition:background 0.3s; }
+.btn-report:active { background:rgba(56,182,255,0.1); }
+.report-card { background:var(--surface); border:1px solid rgba(56,182,255,0.3); border-radius:4px; overflow:hidden; }
+.report-header { background:rgba(56,182,255,0.08); padding:14px 16px; border-bottom:1px solid var(--border); }
+.report-title { font-family:var(--ui); font-weight:900; font-size:14px; letter-spacing:3px; color:var(--info); }
+.report-sub { font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:4px; }
+.report-body { padding:16px; font-family:var(--mono); font-size:11px; line-height:1.8; color:var(--text); white-space:pre-wrap; word-break:break-word; background:none; border:none; margin:0; overflow-x:auto; }
+.report-actions { display:grid; grid-template-columns:1fr 1fr 1fr; border-top:1px solid var(--border); }
+.btn-act { background:none; border:none; border-right:1px solid var(--border); color:var(--info); font-family:var(--ui); font-weight:700; font-size:11px; letter-spacing:1px; padding:12px 6px; cursor:pointer; transition:background 0.2s; text-align:center; }
+.btn-act:last-child { border-right:none; }
+.btn-act:active { background:rgba(56,182,255,0.1); }
+.btn-act-close { color:var(--muted); }
 </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- HEADER -->
   <header>
     <div class="logo"><em>Sonic</em>Shield</div>
     <div class="live-badge">
@@ -555,24 +167,20 @@ canvas#spectrum {
     </div>
   </header>
 
-  <!-- INSTALL BANNER -->
   <div id="installBanner">
     <div class="install-text">📲 <strong>Instalar como app</strong><br>Agrega SonicShield a tu pantalla de inicio</div>
     <button class="btn-install" id="btnInstall">INSTALAR</button>
   </div>
 
-  <!-- START SCREEN -->
   <div id="startScreen">
     <div class="start-icon">🎙️</div>
     <div class="start-title">Detector de Frecuencias</div>
-    <div class="start-sub">Analiza el sonido ambiente en tiempo real e identifica frecuencias potencialmente dañinas para la audición.</div>
+    <div class="start-sub">Analiza el sonido ambiente en tiempo real. Detecta frecuencias y niveles de decibelios potencialmente dañinos según estándares OMS y OSHA.</div>
     <button class="btn-start" id="btnStart">INICIAR ANÁLISIS</button>
   </div>
 
-  <!-- MAIN UI -->
   <div id="mainUI">
 
-    <!-- BIG FREQ -->
     <div class="freq-card" id="freqCard">
       <div class="freq-display">
         <div class="freq-num" id="freqNum">—</div>
@@ -581,7 +189,6 @@ canvas#spectrum {
       <div class="freq-band" id="freqBand">Esperando señal…</div>
     </div>
 
-    <!-- VERDICT -->
     <div class="verdict" id="verdict">
       <div class="verdict-icon" id="verdictIcon">⏳</div>
       <div>
@@ -590,10 +197,9 @@ canvas#spectrum {
       </div>
     </div>
 
-    <!-- METERS -->
     <div class="meters">
       <div class="meter">
-        <div class="meter-label">Volumen (dB)</div>
+        <div class="meter-label">Nivel (dB SPL)</div>
         <div class="meter-val" id="dbVal">—<small>dB</small></div>
         <div class="bar-track"><div class="bar-fill" id="dbBar"></div></div>
       </div>
@@ -604,134 +210,178 @@ canvas#spectrum {
       </div>
     </div>
 
-    <!-- SPECTRUM -->
     <div class="spectrum-card">
       <div class="spectrum-label">Espectro de Frecuencias</div>
       <canvas id="spectrum"></canvas>
       <div class="freq-axis">
-        <span>20Hz</span>
-        <span>500Hz</span>
-        <span>2kHz</span>
-        <span>8kHz</span>
-        <span>20kHz</span>
+        <span>20Hz</span><span>500Hz</span><span>2kHz</span><span>8kHz</span><span>20kHz</span>
       </div>
     </div>
 
-    <!-- REFERENCE TABLE -->
+    <!-- CONSECUENCIAS POR dB -->
+    <div class="db-card">
+      <div class="db-title">
+        <span>⚡ CONSECUENCIAS POR DECIBELIOS</span>
+        <span class="db-current-tag" id="dbCurrentTag"></span>
+      </div>
+
+      <div class="db-row" data-min="0" data-max="30" data-cls="safe">
+        <div class="db-level">0–30 dB</div>
+        <div>
+          <div class="db-name safe">Silencio / Susurro</div>
+          <div class="db-consequence">Biblioteca, respiración, ambiente nocturno. Sin ningún riesgo para la audición.</div>
+          <div class="db-time safe">✓ Seguro de forma indefinida</div>
+        </div>
+      </div>
+
+      <div class="db-row" data-min="30" data-max="60" data-cls="safe">
+        <div class="db-level">30–60 dB</div>
+        <div>
+          <div class="db-name safe">Conversación normal</div>
+          <div class="db-consequence">Oficina tranquila, lluvia suave, música baja. Nivel cotidiano sin efectos negativos conocidos.</div>
+          <div class="db-time safe">✓ Seguro indefinidamente</div>
+        </div>
+      </div>
+
+      <div class="db-row" data-min="60" data-max="75" data-cls="safe">
+        <div class="db-level">60–75 dB</div>
+        <div>
+          <div class="db-name safe">Tráfico / Televisión</div>
+          <div class="db-consequence">Aspiradora, tráfico urbano moderado, restaurante. Sin daño auditivo en exposición normal diaria.</div>
+          <div class="db-time safe">✓ Seguro en uso diario</div>
+        </div>
+      </div>
+
+      <div class="db-row" data-min="75" data-max="85" data-cls="warn">
+        <div class="db-level">75–85 dB</div>
+        <div>
+          <div class="db-name warn">Tráfico intenso / Licuadora</div>
+          <div class="db-consequence">Inicio de zona de riesgo. Fatiga auditiva posible. La OMS establece 85 dB como límite laboral máximo.</div>
+          <div class="db-time warn">⚠ Máximo 8 horas/día (OMS)</div>
+        </div>
+      </div>
+
+      <div class="db-row" data-min="85" data-max="95" data-cls="warn">
+        <div class="db-level">85–95 dB</div>
+        <div>
+          <div class="db-name warn">Maquinaria industrial</div>
+          <div class="db-consequence">Daño auditivo progresivo con exposición prolongada. Pérdida auditiva inducida por ruido (NIHL) probable sin protección.</div>
+          <div class="db-time warn">⚠ Máximo 1 hora continua (OSHA)</div>
+        </div>
+      </div>
+
+      <div class="db-row" data-min="95" data-max="110" data-cls="danger">
+        <div class="db-level">95–110 dB</div>
+        <div>
+          <div class="db-name danger">Concierto / Motosierra</div>
+          <div class="db-consequence">Daño auditivo severo en minutos. Riesgo de tinnitus permanente (pitido crónico). Protección auditiva obligatoria.</div>
+          <div class="db-time danger">🚨 Máximo 15 minutos sin protección</div>
+        </div>
+      </div>
+
+      <div class="db-row" data-min="110" data-max="125" data-cls="danger">
+        <div class="db-level">110–125 dB</div>
+        <div>
+          <div class="db-name danger">Avión / Discoteca</div>
+          <div class="db-consequence">Umbral del dolor físico. Trauma acústico agudo posible. Daño permanente en segundos de exposición.</div>
+          <div class="db-time danger">🚨 Máximo 1–2 minutos</div>
+        </div>
+      </div>
+
+      <div class="db-row" data-min="125" data-max="140" data-cls="danger">
+        <div class="db-level">125–140 dB</div>
+        <div>
+          <div class="db-name danger">Sirena / Disparo de arma</div>
+          <div class="db-consequence">Dolor físico intenso. Rotura del tímpano posible. Daño auditivo permanente e irreversible inmediato.</div>
+          <div class="db-time danger">🚨 Daño instantáneo — alejarse ya</div>
+        </div>
+      </div>
+
+      <div class="db-row" data-min="140" data-max="999" data-cls="danger">
+        <div class="db-level">&gt;140 dB</div>
+        <div>
+          <div class="db-name danger">Explosión / Motor cohete</div>
+          <div class="db-consequence">Zona de peligro extremo. Sordera total instantánea. Riesgo de trauma cerebral por onda de presión.</div>
+          <div class="db-time danger">🚨 PELIGRO VITAL — evacuación inmediata</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FREQ TABLE -->
     <div class="ref-card">
-      <div class="ref-title">Tabla de Referencia de Peligrosidad</div>
-      <div class="ref-row" data-min="0" data-max="20">
-        <div class="ref-hz">&lt; 20 Hz</div>
-        <div class="ref-name">Infrasonido — efectos fisiológicos (mareos, náuseas)</div>
-        <div class="tag warn">PRECAUCIÓN</div>
-      </div>
-      <div class="ref-row" data-min="20" data-max="250">
-        <div class="ref-hz">20–250 Hz</div>
-        <div class="ref-name">Graves — seguros a volumen normal</div>
-        <div class="tag safe">SEGURO</div>
-      </div>
-      <div class="ref-row" data-min="250" data-max="2000">
-        <div class="ref-hz">250 Hz–2 kHz</div>
-        <div class="ref-name">Medios — rango de voz humana</div>
-        <div class="tag safe">SEGURO</div>
-      </div>
-      <div class="ref-row" data-min="2000" data-max="5000">
-        <div class="ref-hz">2–5 kHz</div>
-        <div class="ref-name">Zona crítica — máxima sensibilidad auditiva</div>
-        <div class="tag warn">SENSIBLE</div>
-      </div>
-      <div class="ref-row" data-min="5000" data-max="14000">
-        <div class="ref-hz">5–14 kHz</div>
-        <div class="ref-name">Agudos — dañino con exposición prolongada</div>
-        <div class="tag warn">PRECAUCIÓN</div>
-      </div>
-      <div class="ref-row" data-min="14000" data-max="20000">
-        <div class="ref-hz">14–20 kHz</div>
-        <div class="ref-name">Muy agudos — daño auditivo a alto volumen</div>
-        <div class="tag danger">PELIGRO</div>
-      </div>
-      <div class="ref-row" data-min="20000" data-max="999999">
-        <div class="ref-hz">&gt; 20 kHz</div>
-        <div class="ref-name">Ultrasonido — daño auditivo potencial</div>
-        <div class="tag danger">PELIGRO</div>
+      <div class="ref-title">Tabla de Referencia — Frecuencias</div>
+      <div class="ref-row" data-min="0" data-max="20"><div class="ref-hz">&lt;20 Hz</div><div class="ref-name">Infrasonido — mareos, náuseas posibles</div><div class="tag warn">CUIDADO</div></div>
+      <div class="ref-row" data-min="20" data-max="250"><div class="ref-hz">20–250 Hz</div><div class="ref-name">Graves — seguros a volumen normal</div><div class="tag safe">SEGURO</div></div>
+      <div class="ref-row" data-min="250" data-max="2000"><div class="ref-hz">250Hz–2kHz</div><div class="ref-name">Medios — rango de voz humana</div><div class="tag safe">SEGURO</div></div>
+      <div class="ref-row" data-min="2000" data-max="5000"><div class="ref-hz">2–5 kHz</div><div class="ref-name">Zona crítica — máxima sensibilidad auditiva</div><div class="tag warn">SENSIBLE</div></div>
+      <div class="ref-row" data-min="5000" data-max="14000"><div class="ref-hz">5–14 kHz</div><div class="ref-name">Agudos — dañino con exposición prolongada</div><div class="tag warn">CUIDADO</div></div>
+      <div class="ref-row" data-min="14000" data-max="20000"><div class="ref-hz">14–20 kHz</div><div class="ref-name">Muy agudos — daño a alto volumen</div><div class="tag danger">PELIGRO</div></div>
+      <div class="ref-row" data-min="20000" data-max="999999"><div class="ref-hz">&gt;20 kHz</div><div class="ref-name">Ultrasonido — daño auditivo potencial</div><div class="tag danger">PELIGRO</div></div>
+    </div>
+
+    <!-- REPORT -->
+    <button class="btn-report" id="btnReport">📋 GENERAR REPORTE</button>
+
+    <div id="reportPanel" style="display:none;">
+      <div class="report-card">
+        <div class="report-header">
+          <div class="report-title">INFORME DE EXPOSICIÓN SONORA</div>
+          <div class="report-sub" id="reportDate"></div>
+        </div>
+        <pre class="report-body" id="reportBody"></pre>
+        <div class="report-actions">
+          <button class="btn-act" id="btnCopy">📋 Copiar</button>
+          <button class="btn-act" id="btnShare">↗ Compartir</button>
+          <button class="btn-act btn-act-close" id="btnCloseReport">✕ Cerrar</button>
+        </div>
       </div>
     </div>
 
-    <!-- STOP -->
     <button class="btn-stop" id="btnStop">⏹ DETENER ANÁLISIS</button>
-
-  </div><!-- /mainUI -->
-
-</div><!-- /app -->
+  </div>
+</div>
 
 <script>
-// ── Service Worker ──
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  });
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 }
 
-// ── PWA Install ──
 let deferredPrompt = null;
 const installBanner = document.getElementById('installBanner');
-const btnInstall    = document.getElementById('btnInstall');
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  installBanner.classList.add('show');
-});
-
-btnInstall.addEventListener('click', async () => {
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; installBanner.classList.add('show'); });
+document.getElementById('btnInstall').addEventListener('click', async () => {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
   const { outcome } = await deferredPrompt.userChoice;
   if (outcome === 'accepted') installBanner.classList.remove('show');
   deferredPrompt = null;
 });
+window.addEventListener('appinstalled', () => installBanner.classList.remove('show'));
 
-window.addEventListener('appinstalled', () => {
-  installBanner.classList.remove('show');
-});
-
-// ── Audio Engine ──
-let audioCtx, analyser, source, stream;
-let animFrame;
+let audioCtx, analyser, source, stream, animFrame;
 const FFT_SIZE = 4096;
+const DB_OFFSET = 90; // phone mic calibration
 
-const btnStart  = document.getElementById('btnStart');
-const btnStop   = document.getElementById('btnStop');
-const startScr  = document.getElementById('startScreen');
-const mainUI    = document.getElementById('mainUI');
-const liveDot   = document.getElementById('liveDot');
-const liveLabel = document.getElementById('liveLabel');
+const $ = id => document.getElementById(id);
+const btnStart = $('btnStart'), btnStop = $('btnStop');
+const startScr = $('startScreen'), mainUI = $('mainUI');
+const liveDot = $('liveDot'), liveLabel = $('liveLabel');
+const freqNum = $('freqNum'), freqBand = $('freqBand'), freqCard = $('freqCard');
+const verdict = $('verdict'), verdictIcon = $('verdictIcon'), verdictLabel = $('verdictLabel'), verdictDesc = $('verdictDesc');
+const dbVal = $('dbVal'), dbBar = $('dbBar'), ampVal = $('ampVal'), ampBar = $('ampBar');
+const canvas = $('spectrum'), ctx2d = canvas.getContext('2d');
+const dbCurrentTag = $('dbCurrentTag');
 
-const freqNum   = document.getElementById('freqNum');
-const freqBand  = document.getElementById('freqBand');
-const freqCard  = document.getElementById('freqCard');
-const verdict   = document.getElementById('verdict');
-const verdictIcon  = document.getElementById('verdictIcon');
-const verdictLabel = document.getElementById('verdictLabel');
-const verdictDesc  = document.getElementById('verdictDesc');
-const dbVal     = document.getElementById('dbVal');
-const dbBar     = document.getElementById('dbBar');
-const ampVal    = document.getElementById('ampVal');
-const ampBar    = document.getElementById('ampBar');
-const canvas    = document.getElementById('spectrum');
-const ctx2d     = canvas.getContext('2d');
-
-// Resize canvas
-function resizeCanvas() {
-  canvas.width  = canvas.offsetWidth * window.devicePixelRatio;
-  canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-}
+function resizeCanvas() { canvas.width = canvas.offsetWidth * devicePixelRatio; canvas.height = canvas.offsetHeight * devicePixelRatio; }
 window.addEventListener('resize', resizeCanvas);
 
-btnStart.addEventListener('click', startAnalysis);
-btnStop.addEventListener('click',  stopAnalysis);
+// ── Session tracking ──
+let sessionStart = null;
+let sessionSamples = [];
+let sessionPeakDb = -Infinity;
+let sessionFreqMap = {};
 
-async function startAnalysis() {
+btnStart.addEventListener('click', async () => {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -740,35 +390,31 @@ async function startAnalysis() {
     analyser.smoothingTimeConstant = 0.78;
     source = audioCtx.createMediaStreamSource(stream);
     source.connect(analyser);
-
     startScr.style.display = 'none';
-    mainUI.style.display   = 'flex';
-    mainUI.style.flexDirection = 'column';
-    mainUI.style.gap = '10px';
+    mainUI.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
     liveDot.classList.add('on');
     liveLabel.textContent = 'EN VIVO';
-
+    // Reset session
+    sessionStart = new Date();
+    sessionSamples = [];
+    sessionPeakDb = -Infinity;
+    sessionFreqMap = {};
     resizeCanvas();
     loop();
-  } catch(err) {
-    alert('No se pudo acceder al micrófono. Por favor permite el permiso de audio en tu navegador.');
-    console.error(err);
-  }
-}
+  } catch(e) { alert('No se pudo acceder al micrófono. Permite el permiso de audio.'); }
+});
 
-function stopAnalysis() {
+btnStop.addEventListener('click', () => {
   if (animFrame) cancelAnimationFrame(animFrame);
-  if (source)   source.disconnect();
-  if (stream)   stream.getTracks().forEach(t => t.stop());
+  if (source) source.disconnect();
+  if (stream) stream.getTracks().forEach(t => t.stop());
   if (audioCtx) audioCtx.close();
-
-  mainUI.style.display   = 'none';
+  mainUI.style.display = 'none';
   startScr.style.display = 'flex';
   liveDot.classList.remove('on');
-  liveLabel.textContent  = 'INACTIVO';
-}
+  liveLabel.textContent = 'INACTIVO';
+});
 
-// ── Main Loop ──
 const freqData = new Uint8Array(FFT_SIZE / 2);
 const timeData = new Uint8Array(FFT_SIZE);
 
@@ -776,207 +422,304 @@ function loop() {
   animFrame = requestAnimationFrame(loop);
   analyser.getByteFrequencyData(freqData);
   analyser.getByteTimeDomainData(timeData);
+  const binHz = audioCtx.sampleRate / FFT_SIZE;
 
-  const sampleRate = audioCtx.sampleRate;
-  const binHz = sampleRate / FFT_SIZE;
-
-  // ── Dominant frequency ──
   let maxAmp = 0, maxBin = 0;
-  // Skip bins 0-2 (DC offset)
-  for (let i = 2; i < freqData.length; i++) {
-    if (freqData[i] > maxAmp) { maxAmp = freqData[i]; maxBin = i; }
-  }
+  for (let i = 2; i < freqData.length; i++) { if (freqData[i] > maxAmp) { maxAmp = freqData[i]; maxBin = i; } }
   const domFreq = Math.round(maxBin * binHz);
 
-  // ── RMS → dB ──
   let sum = 0;
-  for (let i = 0; i < timeData.length; i++) {
-    const s = (timeData[i] - 128) / 128;
-    sum += s * s;
-  }
+  for (let i = 0; i < timeData.length; i++) { const s = (timeData[i]-128)/128; sum += s*s; }
   const rms = Math.sqrt(sum / timeData.length);
-  const db  = rms > 0 ? Math.round(20 * Math.log10(rms)) : -100;
-  const dbNorm = Math.min(100, Math.max(0, (db + 60) / 60 * 100));
-
-  // ── Peak amplitude ──
+  const db = Math.round((rms > 0 ? 20 * Math.log10(rms) : -100) + DB_OFFSET);
+  const dbNorm = Math.min(100, Math.max(0, (db / 140) * 100));
   const peak = Math.round((maxAmp / 255) * 100);
 
-  // ── Classification ──
-  const cls = classify(domFreq, db, maxAmp);
+  const cls = classify(domFreq, db);
 
-  // ── Update DOM ──
+  // ── Session data ──
+  if (db > 0) {
+    sessionSamples.push(db);
+    if (db > sessionPeakDb) sessionPeakDb = db;
+    const fBand = freqBand(domFreq);
+    sessionFreqMap[fBand] = (sessionFreqMap[fBand] || 0) + 1;
+  }
+
   freqNum.textContent = domFreq > 0 ? domFreq.toLocaleString() : '—';
-  freqNum.className   = 'freq-num ' + cls.colorClass;
-  freqBand.textContent = cls.band;
-  freqBand.className   = 'freq-band ' + cls.colorClass;
-
-  freqCard.className = 'freq-card ' + cls.colorClass + '-glow';
-
-  verdict.className      = 'verdict ' + cls.verdictClass;
+  freqNum.className = 'freq-num ' + cls.c;
+  freqBand.textContent = cls.band; freqBand.className = 'freq-band ' + cls.c;
+  freqCard.className = 'freq-card ' + cls.c + '-glow';
+  verdict.className = 'verdict ' + cls.vc;
   verdictIcon.textContent = cls.icon;
   verdictLabel.textContent = cls.label;
-  verdictDesc.textContent  = cls.desc;
+  verdictDesc.textContent = cls.desc;
+  dbVal.innerHTML = `${db > 0 ? db : '—'}<small>dB</small>`;
+  dbBar.style.width = dbNorm + '%'; dbBar.className = 'bar-fill ' + cls.c;
+  ampVal.innerHTML = `${peak}<small>%</small>`;
+  ampBar.style.width = peak + '%'; ampBar.className = 'bar-fill ' + cls.c;
 
-  dbVal.innerHTML  = `${db > -100 ? db : '—'}<small>dB</small>`;
-  dbBar.style.width = dbNorm + '%';
-  dbBar.className   = 'bar-fill ' + cls.colorClass;
-
-  ampVal.innerHTML  = `${peak}<small>%</small>`;
-  ampBar.style.width = peak + '%';
-  ampBar.className   = 'bar-fill ' + cls.colorClass;
-
-  // Highlight table row
-  document.querySelectorAll('.ref-row').forEach(row => {
-    const min = parseFloat(row.dataset.min);
-    const max = parseFloat(row.dataset.max);
-    row.classList.toggle('active', domFreq >= min && domFreq < max);
+  // Highlight dB row
+  document.querySelectorAll('.db-row').forEach(row => {
+    const active = db >= +row.dataset.min && db < +row.dataset.max;
+    row.classList.toggle('active-db', active);
+    row.classList.toggle('cls-safe',   active && row.dataset.cls === 'safe');
+    row.classList.toggle('cls-warn',   active && row.dataset.cls === 'warn');
+    row.classList.toggle('cls-danger', active && row.dataset.cls === 'danger');
+    if (active) {
+      dbCurrentTag.textContent = '→ ' + (row.querySelector('.db-name')?.textContent || '');
+    }
   });
 
-  // ── Draw spectrum ──
-  drawSpectrum(binHz, sampleRate, cls.colorClass);
+  // Highlight freq row
+  document.querySelectorAll('.ref-row').forEach(row => {
+    row.classList.toggle('active', domFreq >= +row.dataset.min && domFreq < +row.dataset.max);
+  });
+
+  drawSpectrum(binHz, cls.c);
 }
 
-function classify(freq, db, rawAmp) {
-  const loud = db > -15; // very loud
-  const mod  = db > -30; // moderate
-
-  if (freq < 20) return {
-    colorClass: 'warn', verdictClass: 'warn',
-    band: 'INFRASONIDO', icon: '⚠️',
-    label: 'Precaución — Infrasonido',
-    desc: 'Frecuencia por debajo del umbral auditivo. Puede causar mareos, náuseas o desorientación con exposición prolongada.'
-  };
-
-  if (freq >= 20 && freq < 250) return {
-    colorClass: loud ? 'warn' : 'safe', verdictClass: loud ? 'warn' : 'safe',
-    band: 'GRAVES — SEGUROS', icon: loud ? '⚠️' : '✅',
-    label: loud ? 'Volumen elevado' : 'Seguro',
-    desc: loud ? 'Frecuencias graves a volumen alto. Reduce la exposición.' : 'Rango de bajos. Seguro a volumen normal.'
-  };
-
-  if (freq >= 250 && freq < 2000) return {
-    colorClass: loud ? 'warn' : 'safe', verdictClass: loud ? 'warn' : 'safe',
-    band: 'MEDIOS — VOZ HUMANA', icon: loud ? '⚠️' : '✅',
-    label: loud ? 'Volumen elevado' : 'Seguro',
-    desc: loud ? 'Rango de voz a volumen peligroso (>' + db + 'dB). Mantén distancia.' : 'Rango de voz y conversación. Completamente seguro.'
-  };
-
-  if (freq >= 2000 && freq < 5000) {
-    if (loud) return {
-      colorClass: 'danger', verdictClass: 'danger',
-      band: 'ZONA CRÍTICA — PELIGRO', icon: '🚨',
-      label: 'PELIGRO — Daño auditivo',
-      desc: `2–5kHz es la banda más sensible del oído. A ${db}dB puede causar daño auditivo permanente.`
-    };
-    return {
-      colorClass: 'warn', verdictClass: 'warn',
-      band: 'ZONA CRÍTICA — SENSIBLE', icon: '⚠️',
-      label: 'Zona sensible',
-      desc: 'Máxima sensibilidad auditiva humana. A volumen moderado es tolerable, pero evita exposición prolongada.'
-    };
-  }
-
-  if (freq >= 5000 && freq < 14000) {
-    if (mod) return {
-      colorClass: 'warn', verdictClass: 'warn',
-      band: 'AGUDOS — PRECAUCIÓN', icon: '⚠️',
-      label: 'Precaución — Agudos',
-      desc: 'Frecuencias agudas moderadas o altas. La exposición prolongada puede causar fatiga auditiva.'
-    };
-    return {
-      colorClass: 'safe', verdictClass: 'safe',
-      band: 'AGUDOS — ACEPTABLE', icon: '✅',
-      label: 'Aceptable',
-      desc: 'Rango agudo a bajo volumen. Sin riesgo inmediato.'
-    };
-  }
-
-  if (freq >= 14000 && freq < 20000) return {
-    colorClass: mod ? 'danger' : 'warn', verdictClass: mod ? 'danger' : 'warn',
-    band: 'MUY AGUDOS', icon: mod ? '🚨' : '⚠️',
-    label: mod ? 'PELIGRO — Muy agudos' : 'Precaución',
-    desc: mod ? 'Frecuencias muy agudas a volumen considerable. Riesgo de daño auditivo.' : 'Frecuencias muy agudas a bajo nivel. Evita exposición prolongada.'
-  };
-
-  return {
-    colorClass: 'danger', verdictClass: 'danger',
-    band: 'ULTRASONIDO', icon: '🚨',
-    label: 'PELIGRO — Ultrasonido',
-    desc: 'Por encima del rango auditivo. El ultrasonido puede causar daño auditivo, calentamiento de tejidos y otros efectos biológicos.'
-  };
+function classify(freq, db) {
+  const loud = db > 85, mod = db > 70;
+  if (freq < 20)    return {c:'warn',  vc:'warn',   band:'INFRASONIDO',          icon:'⚠️', label:'Precaución — Infrasonido',    desc:'Frecuencia por debajo del rango auditivo. Puede causar mareos y náuseas con exposición prolongada.'};
+  if (freq < 250)   return {c:loud?'warn':'safe',  vc:loud?'warn':'safe',  band:loud?'GRAVES — VOLUMEN ALTO':'GRAVES — SEGUROS',  icon:loud?'⚠️':'✅', label:loud?'Volumen elevado':'Seguro', desc:loud?'Frecuencias graves a volumen peligroso. Reduce la distancia o el volumen.':'Rango de bajos. Seguro a este nivel.'};
+  if (freq < 2000)  return {c:loud?'warn':'safe',  vc:loud?'warn':'safe',  band:loud?'MEDIOS — VOLUMEN ALTO':'MEDIOS — SEGUROS',  icon:loud?'⚠️':'✅', label:loud?'Volumen elevado':'Seguro', desc:loud?'Rango de voz a volumen peligroso. Mantén distancia.':'Rango de voz. Completamente seguro.'};
+  if (freq < 5000)  return loud ? {c:'danger',vc:'danger',band:'ZONA CRÍTICA — PELIGRO',icon:'🚨',label:'PELIGRO — Daño auditivo',desc:`2–5kHz es la banda más sensible del oído. A ${db}dB el daño auditivo permanente es probable.`} : {c:'warn',vc:'warn',band:'ZONA CRÍTICA — SENSIBLE',icon:'⚠️',label:'Zona sensible',desc:'Máxima sensibilidad auditiva humana. Tolerable a volumen moderado pero evita exposición prolongada.'};
+  if (freq < 14000) return mod  ? {c:'warn',vc:'warn',band:'AGUDOS — PRECAUCIÓN',icon:'⚠️',label:'Precaución',desc:'Frecuencias agudas a volumen moderado. La exposición prolongada puede causar fatiga auditiva.'} : {c:'safe',vc:'safe',band:'AGUDOS — ACEPTABLE',icon:'✅',label:'Aceptable',desc:'Rango agudo a bajo volumen. Sin riesgo inmediato.'};
+  if (freq < 20000) return {c:mod?'danger':'warn',vc:mod?'danger':'warn',band:'MUY AGUDOS',icon:mod?'🚨':'⚠️',label:mod?'PELIGRO — Muy agudos':'Precaución',desc:mod?'Frecuencias muy agudas a volumen considerable. Riesgo de daño auditivo.':'Frecuencias muy agudas a bajo nivel. Evita exposición prolongada.'};
+  return {c:'danger',vc:'danger',band:'ULTRASONIDO',icon:'🚨',label:'PELIGRO — Ultrasonido',desc:'Por encima del rango auditivo. El ultrasonido puede causar daño auditivo y efectos biológicos adversos.'};
 }
 
-function drawSpectrum(binHz, sampleRate, colorClass) {
-  const W = canvas.width;
-  const H = canvas.height;
-  ctx2d.clearRect(0, 0, W, H);
+function freqBand(f) {
+  if (f < 20)     return 'Infrasonido (<20 Hz)';
+  if (f < 250)    return 'Graves (20–250 Hz)';
+  if (f < 2000)   return 'Medios (250 Hz–2 kHz)';
+  if (f < 5000)   return 'Zona crítica (2–5 kHz)';
+  if (f < 14000)  return 'Agudos (5–14 kHz)';
+  if (f < 20000)  return 'Muy agudos (14–20 kHz)';
+  return 'Ultrasonido (>20 kHz)';
+}
 
-  // Background
-  ctx2d.fillStyle = '#0b0e1c';
-  ctx2d.fillRect(0, 0, W, H);
+function fmtDuration(ms) {
+  const s = Math.floor(ms/1000);
+  const m = Math.floor(s/60);
+  const h = Math.floor(m/60);
+  if (h > 0) return `${h}h ${m%60}m ${s%60}s`;
+  if (m > 0) return `${m}m ${s%60}s`;
+  return `${s}s`;
+}
 
-  // Color by class
-  const colors = { safe: '#00ffa3', warn: '#ffcc00', danger: '#ff3358', '': '#38b6ff' };
-  const c = colors[colorClass] || colors[''];
+function safeExposure(avgDb) {
+  if (avgDb < 75)  return { limit: 'Sin límite recomendado', org: 'OMS' };
+  if (avgDb < 85)  return { limit: '8 horas/día máximo', org: 'OMS' };
+  if (avgDb < 91)  return { limit: '2 horas/día máximo', org: 'NIOSH' };
+  if (avgDb < 94)  return { limit: '1 hora/día máximo', org: 'OSHA' };
+  if (avgDb < 100) return { limit: '15 minutos máximo', org: 'NIOSH' };
+  if (avgDb < 110) return { limit: '2 minutos máximo', org: 'NIOSH' };
+  if (avgDb < 125) return { limit: 'Menos de 1 minuto', org: 'OMS/NIOSH' };
+  return { limit: 'EXPOSICIÓN PROHIBIDA — Daño instantáneo', org: 'OMS/OSHA/NIOSH' };
+}
 
-  // Log-scale spectrum (20Hz to 20kHz)
-  const logMin = Math.log10(20);
-  const logMax = Math.log10(20000);
+function riskLevel(db) {
+  if (db < 75)  return '✅ SIN RIESGO';
+  if (db < 85)  return '⚠️ RIESGO BAJO';
+  if (db < 95)  return '⚠️ RIESGO MODERADO';
+  if (db < 110) return '🚨 RIESGO ALTO';
+  return '🚨 RIESGO EXTREMO';
+}
 
+function generateReport() {
+  if (!sessionStart || sessionSamples.length === 0) {
+    alert('No hay datos de sesión. Inicia el análisis primero.');
+    return;
+  }
+  const now = new Date();
+  const duration = now - sessionStart;
+  const avgDb = Math.round(sessionSamples.reduce((a,b)=>a+b,0) / sessionSamples.length);
+  const exposure = safeExposure(avgDb);
+  const risk = riskLevel(avgDb);
+
+  // Predominant freq band
+  const topBand = Object.entries(sessionFreqMap).sort((a,b)=>b[1]-a[1])[0];
+  const pctTop  = topBand ? Math.round((topBand[1]/sessionSamples.length)*100) : 0;
+
+  const dateStr = sessionStart.toLocaleDateString('es', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const timeStr = sessionStart.toLocaleTimeString('es');
+
+  const lines = [
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `  SONICSHIELD — INFORME DE EXPOSICIÓN`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    ``,
+    `📅 FECHA Y HORA`,
+    `   ${dateStr}`,
+    `   Inicio: ${timeStr}`,
+    `   Duración total: ${fmtDuration(duration)}`,
+    ``,
+    `📊 RESULTADOS DE LA MEDICIÓN`,
+    `   Nivel promedio:   ${avgDb} dB SPL`,
+    `   Nivel pico:       ${sessionPeakDb > 0 ? sessionPeakDb : '—'} dB SPL`,
+    `   Muestras tomadas: ${sessionSamples.length}`,
+    ``,
+    `🎵 FRECUENCIA PREDOMINANTE`,
+    `   Banda: ${topBand ? topBand[0] : '—'}`,
+    `   Presencia: ${pctTop}% del tiempo de registro`,
+    ``,
+    `⚡ NIVEL DE RIESGO`,
+    `   ${risk}`,
+    ``,
+    `⏱️ TIEMPO MÁXIMO DE EXPOSICIÓN SEGURA`,
+    `   ${exposure.limit}`,
+    `   Fuente: ${exposure.org}`,
+    ``,
+    `🏥 CONSECUENCIAS SEGÚN ORGANISMOS`,
+    `   ACREDITADOS INTERNACIONALMENTE`,
+    ``,
+    ...getConsequences(avgDb, sessionPeakDb),
+    ``,
+    `📚 REFERENCIAS NORMATIVAS`,
+    `   • OMS — Organización Mundial de la Salud`,
+    `     Directrices sobre ruido ambiental (2018)`,
+    `     Límite: 85 dB(A) / 8h diarias`,
+    ``,
+    `   • OSHA — Occupational Safety and Health`,
+    `     Administration (EE.UU.)`,
+    `     Límite laboral: 90 dB / 8h (TWA)`,
+    `     Acción requerida: 85 dB / 8h`,
+    ``,
+    `   • NIOSH — National Institute for`,
+    `     Occupational Safety and Health`,
+    `     Límite recomendado: 85 dB / 8h`,
+    `     Intercambio: 3 dB (más estricto que OSHA)`,
+    ``,
+    `   • IEC 61672 — Norma internacional para`,
+    `     sonómetros y medición de nivel sonoro`,
+    ``,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `  Generado por SonicShield`,
+    `  ${now.toLocaleString('es')}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+  ];
+
+  return lines.join('\n');
+}
+
+function getConsequences(avg, peak) {
+  const lines = [];
+  if (avg < 75) {
+    lines.push('   Nivel promedio SEGURO. Sin efectos');
+    lines.push('   adversos conocidos en la audición.');
+  } else if (avg < 85) {
+    lines.push('   Exposición prolongada puede causar');
+    lines.push('   fatiga auditiva leve. La OMS recomienda');
+    lines.push('   no superar este nivel en jornada laboral.');
+  } else if (avg < 95) {
+    lines.push('   RIESGO DE DAÑO AUDITIVO PROGRESIVO:');
+    lines.push('   • Pérdida auditiva inducida por ruido');
+    lines.push('     (NIHL) con exposición continua');
+    lines.push('   • Tinnitus (pitido crónico) posible');
+    lines.push('   • Daño en células ciliadas del oído');
+    lines.push('     interno (irreversible)');
+    lines.push('   • Recomendación: usar protección auditiva');
+  } else if (avg < 110) {
+    lines.push('   RIESGO ALTO — EFECTOS SEVEROS:');
+    lines.push('   • Daño auditivo permanente en minutos');
+    lines.push('   • Trauma acústico agudo posible');
+    lines.push('   • Tinnitus crónico de alta probabilidad');
+    lines.push('   • Hipertensión y estrés cardiovascular');
+    lines.push('   • Protección auditiva OBLIGATORIA');
+  } else {
+    lines.push('   PELIGRO EXTREMO:');
+    lines.push('   • Rotura del tímpano posible');
+    lines.push('   • Sordera parcial o total instantánea');
+    lines.push('   • Dolor físico auditivo');
+    lines.push('   • Trauma cerebral por onda de presión');
+    lines.push('   • ALEJARSE INMEDIATAMENTE DE LA FUENTE');
+  }
+  if (peak > avg + 15) {
+    lines.push('');
+    lines.push(`   ⚠️ PICOS DETECTADOS hasta ${peak} dB:`);
+    lines.push('   Los picos súbitos son especialmente');
+    lines.push('   dañinos incluso en exposición breve.');
+  }
+  return lines;
+}
+
+// Report button
+$('btnReport').addEventListener('click', () => {
+  const text = generateReport();
+  if (!text) return;
+  $('reportDate').textContent = new Date().toLocaleString('es');
+  $('reportBody').textContent = text;
+  $('reportPanel').style.display = 'block';
+  $('reportPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+$('btnCloseReport').addEventListener('click', () => {
+  $('reportPanel').style.display = 'none';
+});
+
+$('btnCopy').addEventListener('click', () => {
+  const text = $('reportBody').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    $('btnCopy').textContent = '✓ Copiado';
+    setTimeout(() => $('btnCopy').textContent = '📋 Copiar', 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    $('btnCopy').textContent = '✓ Copiado';
+    setTimeout(() => $('btnCopy').textContent = '📋 Copiar', 2000);
+  });
+});
+
+$('btnShare').addEventListener('click', async () => {
+  const text = $('reportBody').textContent;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'SonicShield — Informe de Exposición', text });
+    } catch(e) {}
+  } else {
+    navigator.clipboard.writeText(text);
+    alert('Reporte copiado al portapapeles.');
+  }
+});
+  const W = canvas.width, H = canvas.height;
+  ctx2d.clearRect(0,0,W,H);
+  ctx2d.fillStyle = '#0b0e1c'; ctx2d.fillRect(0,0,W,H);
+  const colors = {safe:'#00ffa3',warn:'#ffcc00',danger:'#ff3358'};
+  const c = colors[colorClass] || '#38b6ff';
+  const logMin = Math.log10(20), logMax = Math.log10(20000);
+  [100,500,1000,5000,10000].forEach(f => {
+    const px = ((Math.log10(f)-logMin)/(logMax-logMin))*W;
+    ctx2d.beginPath(); ctx2d.moveTo(px,0); ctx2d.lineTo(px,H);
+    ctx2d.strokeStyle='rgba(255,255,255,0.04)'; ctx2d.lineWidth=1; ctx2d.stroke();
+  });
   ctx2d.beginPath();
   let first = true;
-
-  for (let px = 0; px < W; px++) {
-    const logF = logMin + (px / W) * (logMax - logMin);
-    const f = Math.pow(10, logF);
-    const bin = Math.round(f / binHz);
+  for (let px=0;px<W;px++) {
+    const f = Math.pow(10, logMin+(px/W)*(logMax-logMin));
+    const bin = Math.round(f/binHz);
     if (bin >= freqData.length) continue;
-    const v = freqData[bin] / 255;
-    const y = H - v * H * 0.95;
-    if (first) { ctx2d.moveTo(px, y); first = false; }
-    else ctx2d.lineTo(px, y);
+    const y = H-(freqData[bin]/255)*H*0.95;
+    first ? (ctx2d.moveTo(px,y),first=false) : ctx2d.lineTo(px,y);
   }
-
-  ctx2d.lineTo(W, H);
-  ctx2d.lineTo(0, H);
-  ctx2d.closePath();
-
-  const grad = ctx2d.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0,   c + 'cc');
-  grad.addColorStop(0.6, c + '44');
-  grad.addColorStop(1,   c + '11');
-  ctx2d.fillStyle = grad;
-  ctx2d.fill();
-
-  // Line
-  ctx2d.beginPath();
-  first = true;
-  for (let px = 0; px < W; px++) {
-    const logF = logMin + (px / W) * (logMax - logMin);
-    const f = Math.pow(10, logF);
-    const bin = Math.round(f / binHz);
+  ctx2d.lineTo(W,H); ctx2d.lineTo(0,H); ctx2d.closePath();
+  const g = ctx2d.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,c+'bb'); g.addColorStop(0.6,c+'33'); g.addColorStop(1,c+'08');
+  ctx2d.fillStyle=g; ctx2d.fill();
+  ctx2d.beginPath(); first=true;
+  for (let px=0;px<W;px++) {
+    const f = Math.pow(10, logMin+(px/W)*(logMax-logMin));
+    const bin = Math.round(f/binHz);
     if (bin >= freqData.length) continue;
-    const v = freqData[bin] / 255;
-    const y = H - v * H * 0.95;
-    if (first) { ctx2d.moveTo(px, y); first = false; }
-    else ctx2d.lineTo(px, y);
+    const y = H-(freqData[bin]/255)*H*0.95;
+    first ? (ctx2d.moveTo(px,y),first=false) : ctx2d.lineTo(px,y);
   }
-  ctx2d.strokeStyle = c;
-  ctx2d.lineWidth = 1.5 * window.devicePixelRatio;
-  ctx2d.stroke();
-
-  // Grid lines at key frequencies
-  [100, 1000, 5000, 10000].forEach(f => {
-    const logF = Math.log10(f);
-    const px = ((logF - logMin) / (logMax - logMin)) * W;
-    ctx2d.beginPath();
-    ctx2d.moveTo(px, 0);
-    ctx2d.lineTo(px, H);
-    ctx2d.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx2d.lineWidth = 1;
-    ctx2d.stroke();
-  });
+  ctx2d.strokeStyle=c; ctx2d.lineWidth=1.5*devicePixelRatio; ctx2d.stroke();
 }
 </script>
 </body>
-</html>
+  </html>
+                                                                          
